@@ -2,11 +2,17 @@ import streamlit as st
 import numpy as np
 import os
 import json
-import gdown
 from PIL import Image
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from remedies import remedies
+
+# Try to import gdown, install if missing
+try:
+    import gdown
+except ImportError:
+    os.system("pip install gdown")
+    import gdown
 
 # Title
 st.title("🌿 Crop Disease Detector")
