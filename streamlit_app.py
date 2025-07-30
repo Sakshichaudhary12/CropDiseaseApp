@@ -30,12 +30,12 @@ with open("class_indices.json", "r") as f:
     class_indices = json.load(f)
 class_labels = {v: k for k, v in class_indices.items()}
 
-# ✅ Updated Prediction Function
+# ✅ Prediction Function
 def predict(img):
-    img = img.convert("RGB")                     # 🔧 Ensure 3 channels (even if grayscale)
-    img = img.resize((224, 224))                 # 🔧 Resize for model input
-    img_array = image.img_to_array(img) / 255.0  # 🔧 Normalize to [0, 1]
-    img_array = np.expand_dims(img_array, axis=0)  # 🔧 Add batch dimension
+    img = img.convert("RGB")                     # Ensure 3 channels
+    img = img.resize((224, 224))                 # Resize for model
+    img_array = image.img_to_array(img) / 255.0  # Normalize
+    img_array = np.expand_dims(img_array, axis=0)  # Add batch dim
     prediction = model.predict(img_array)
     predicted_class = class_labels[np.argmax(prediction)]
     confidence = round(100 * np.max(prediction), 2)
@@ -59,15 +59,14 @@ if uploaded_file is not None:
         # --- Translate remedy ---
         st.subheader("🌐 Translate Remedy")
         lang_map = {
-            'hindi': 'hindi',
-            'tamil': 'tamil',
-            'bengali': 'bengali',
-            'gujarati': 'gujarati',
-            'kannada': 'kannada',
-            'marathi': 'marathi',
-            'telagu': 'telugu',
-            'punjabi': 'punjabi'
-            
+            'hi': 'hindi',
+            'ta': 'tamil',
+            'bn': 'bengali',
+            'gu': 'gujarati',
+            'kn': 'kannada',
+            'mr': 'marathi',
+            'te': 'telugu',
+            'pa': 'punjabi'
         }
         lang_code = st.selectbox("Choose Language", list(lang_map.keys()))
 
@@ -102,11 +101,13 @@ if uploaded_file is not None:
                 "feedback": feedback,
                 "comment": comment
             }
-            df = pd.DataFrame([feedback_data])
-            if os.path.exists("feedback_log.csv"):
-                df.to_csv("feedback_log.csv", mode='a', header=False, index=False)
-            else:
-                df.to_csv("feedback_log.csv", index=False)
+
+            # ✅ Save with proper columns
+            columns = ["image_name", "prediction", "confidence", "feedback", "comment"]
+            df = pd.DataFrame([feedback_data], columns=columns)
+
+            file_exists = os.path.exists("feedback_log.csv")
+            df.to_csv("feedback_log.csv", mode='a', header=not file_exists, index=False)
             st.success("Thank you for your feedback!")
 
     except Exception as e:
