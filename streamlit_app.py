@@ -16,32 +16,52 @@ st.set_page_config(page_title="Crop Disease Detector", layout="centered")
 st.title("🌿 Crop Disease Detector")
 st.write("Upload a sugarcane or maize leaf image to detect disease and get treatment advice.")
 
-# Step 1: Download model from Google Drive if not present
+# =====================
+# ✅ Download + Load Model
+# =====================
 model_path = "crop_disease_model.h5"
+file_id = "1erkVOB1_fsbO2H8SOguACLuKpPO3ehhb"
+url = f"https://drive.google.com/uc?id={file_id}"
+
 if not os.path.exists(model_path):
-    file_id = "1erkVOB1_fsbO2H8SOguACLuKpPO3ehhb"
-    gdown.download(f"https://drive.google.com/uc?id={file_id}", model_path, quiet=False)
+    try:
+        st.info("📥 Downloading model...")
+        gdown.download(url, model_path, quiet=False)
+        st.success("✅ Model downloaded.")
+    except Exception as e:
+        st.error(f"❌ Model download failed: {e}")
+        st.stop()
 
-# Step 2: Load model
-model = load_model(model_path)
+try:
+    model = load_model(model_path)
+    st.success("✅ Model loaded successfully.")
+except Exception as e:
+    st.error(f"❌ Failed to load model: {e}")
+    st.stop()
 
-# Load class indices
+# =====================
+# ✅ Load class indices
+# =====================
 with open("class_indices.json", "r") as f:
     class_indices = json.load(f)
 class_labels = {v: k for k, v in class_indices.items()}
 
-# ✅ Prediction Function
+# =====================
+# ✅ Predict function
+# =====================
 def predict(img):
-    img = img.convert("RGB")                     # Ensure 3 channels
-    img = img.resize((224, 224))                 # Resize for model
-    img_array = image.img_to_array(img) / 255.0  # Normalize
-    img_array = np.expand_dims(img_array, axis=0)  # Add batch dim
+    img = img.convert("RGB")
+    img = img.resize((224, 224))
+    img_array = image.img_to_array(img) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
     prediction = model.predict(img_array)
     predicted_class = class_labels[np.argmax(prediction)]
     confidence = round(100 * np.max(prediction), 2)
     return predicted_class, confidence
 
-# Upload section
+# =====================
+# 📷 Upload image
+# =====================
 uploaded_file = st.file_uploader("📷 Upload Leaf Image", type=["jpg", "png", "jpeg"])
 
 if uploaded_file is not None:
@@ -56,7 +76,9 @@ if uploaded_file is not None:
         st.info(f"Confidence: **{confidence}%**")
         st.warning(f"Recommended Remedy: {remedy}")
 
-        # --- Translate remedy ---
+        # =====================
+        # 🌐 Translate remedy
+        # =====================
         st.subheader("🌐 Translate Remedy")
         lang_map = {
             'hi': 'hindi',
@@ -77,7 +99,9 @@ if uploaded_file is not None:
             except Exception as e:
                 st.error(f"Translation failed: {e}")
 
-        # --- Voice output ---
+        # =====================
+        # 🔊 Voice output
+        # =====================
         st.subheader("🔊 Listen Remedy")
         if st.button("Speak Remedy"):
             try:
@@ -88,7 +112,9 @@ if uploaded_file is not None:
             except Exception as e:
                 st.error(f"Text-to-Speech failed: {e}")
 
-        # --- Feedback section ---
+        # =====================
+        # 📝 Feedback Section
+        # =====================
         st.subheader("📝 Feedback")
         feedback = st.radio("Was the prediction correct?", ("Yes", "No"))
         comment = st.text_input("Any suggestions or comments?")
@@ -105,17 +131,16 @@ if uploaded_file is not None:
             columns = ["image_name", "prediction", "confidence", "feedback", "comment"]
             df = pd.DataFrame([feedback_data], columns=columns)
 
-            # ✅ Fix corrupted CSV if needed
             try:
                 if os.path.exists("feedback_log.csv"):
                     existing = pd.read_csv("feedback_log.csv")
                     df.to_csv("feedback_log.csv", mode='a', header=False, index=False)
                 else:
                     df.to_csv("feedback_log.csv", index=False)
+                st.success("Thank you for your feedback!")
             except:
-                df.to_csv("feedback_log.csv", index=False)  # recreate file
-
-            st.success("Thank you for your feedback!")
+                df.to_csv("feedback_log.csv", index=False)
+                st.success("Thank you for your feedback (file recreated)!")
 
     except Exception as e:
-        st.error(f"Prediction failed: {e}")
+        st.error(f"❌ Prediction failed: {e}")
