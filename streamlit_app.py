@@ -67,7 +67,7 @@ if uploaded_file is not None:
             'marathi': 'marathi',
             'telagu': 'telugu',
             'punjabi': 'punjabi'
-            'english': 'english'
+            
         }
         lang_code = st.selectbox("Choose Language", list(lang_map.keys()))
 
