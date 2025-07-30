@@ -2,6 +2,6 @@ streamlit
 tensorflow
 Pillow
 gtts
+gdown
 googletrans==4.0.0-rc1
 numpy
-gdown
