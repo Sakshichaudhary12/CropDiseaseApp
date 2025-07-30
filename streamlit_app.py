@@ -102,12 +102,19 @@ if uploaded_file is not None:
                 "comment": comment
             }
 
-            # ✅ Save with proper columns
             columns = ["image_name", "prediction", "confidence", "feedback", "comment"]
             df = pd.DataFrame([feedback_data], columns=columns)
 
-            file_exists = os.path.exists("feedback_log.csv")
-            df.to_csv("feedback_log.csv", mode='a', header=not file_exists, index=False)
+            # ✅ Fix corrupted CSV if needed
+            try:
+                if os.path.exists("feedback_log.csv"):
+                    existing = pd.read_csv("feedback_log.csv")
+                    df.to_csv("feedback_log.csv", mode='a', header=False, index=False)
+                else:
+                    df.to_csv("feedback_log.csv", index=False)
+            except:
+                df.to_csv("feedback_log.csv", index=False)  # recreate file
+
             st.success("Thank you for your feedback!")
 
     except Exception as e:
