@@ -19,7 +19,7 @@ st.title("🌿 Crop Disease Detector")
 st.write("Upload a sugarcane or maize leaf image to detect disease and get treatment advice.")
 
 # =====================
-# 📥 Download + Load Model
+# 📅 Download + Load Model
 # =====================
 model_path = "crop_disease_model.h5"
 file_id = "1erkVOB1_fsbO2H8SOguACLuKpPO3ehhb"
@@ -27,7 +27,7 @@ url = f"https://drive.google.com/uc?id={file_id}"
 
 if not os.path.exists(model_path):
     try:
-        st.info("📥 Downloading model...")
+        st.info("📅 Downloading model...")
         gdown.download(url, model_path, quiet=False)
         st.success("✅ Model downloaded.")
     except Exception as e:
@@ -115,7 +115,7 @@ if uploaded_file is not None:
                 st.error(f"Text-to-Speech failed: {e}")
 
         # =====================
-        # 📝 Feedback Section (FINAL WORKING)
+        # 📝 Feedback Section (UPDATED FIXED)
         # =====================
         st.subheader("📝 Feedback")
         feedback = st.radio("Was the prediction correct?", ("Yes", "No"))
@@ -135,11 +135,16 @@ if uploaded_file is not None:
 
             try:
                 if os.path.exists("feedback_log.csv"):
-                    existing_cols = pd.read_csv("feedback_log.csv", nrows=1).columns.tolist()
-                    if existing_cols != columns:
-                        os.remove("feedback_log.csv")  # delete corrupted file
-                        df.to_csv("feedback_log.csv", index=False)
-                    else:
+                    try:
+                        existing_cols = pd.read_csv("feedback_log.csv", nrows=1).columns.tolist()
+                        if existing_cols != columns:
+                            os.remove("feedback_log.csv")
+                            df.to_csv("feedback_log.csv", index=False)
+                        else:
+                            df.to_csv("feedback_log.csv", mode='a', header=False, index=False)
+                    except pd.errors.EmptyDataError:
+                        with open("feedback_log.csv", "w") as f:
+                            f.write(",".join(columns) + "\n")
                         df.to_csv("feedback_log.csv", mode='a', header=False, index=False)
                 else:
                     df.to_csv("feedback_log.csv", index=False)
