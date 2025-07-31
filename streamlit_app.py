@@ -114,45 +114,5 @@ if uploaded_file is not None:
             except Exception as e:
                 st.error(f"Text-to-Speech failed: {e}")
 
-        # =====================
-        # 📝 Feedback Section (UPDATED FIXED)
-        # =====================
-        st.subheader("📝 Feedback")
-        feedback = st.radio("Was the prediction correct?", ("Yes", "No"))
-        comment = st.text_input("Any suggestions or comments?")
-
-        if st.button("Submit Feedback"):
-            feedback_data = {
-                "image_name": uploaded_file.name,
-                "prediction": label,
-                "confidence": confidence,
-                "feedback": feedback,
-                "comment": comment
-            }
-
-            columns = ["image_name", "prediction", "confidence", "feedback", "comment"]
-            df = pd.DataFrame([feedback_data], columns=columns)
-
-            try:
-                if os.path.exists("feedback_log.csv"):
-                    try:
-                        existing_cols = pd.read_csv("feedback_log.csv", nrows=1).columns.tolist()
-                        if existing_cols != columns:
-                            os.remove("feedback_log.csv")
-                            df.to_csv("feedback_log.csv", index=False)
-                        else:
-                            df.to_csv("feedback_log.csv", mode='a', header=False, index=False)
-                    except pd.errors.EmptyDataError:
-                        with open("feedback_log.csv", "w") as f:
-                            f.write(",".join(columns) + "\n")
-                        df.to_csv("feedback_log.csv", mode='a', header=False, index=False)
-                else:
-                    df.to_csv("feedback_log.csv", index=False)
-
-                st.success("✅ Your feedback has been recorded!")
-
-            except Exception as e:
-                st.error(f"❌ Feedback save failed: {e}")
-
-    except Exception as e:
-        st.error(f"❌ Prediction failed: {e}")
+      
+       
