@@ -11,13 +11,15 @@ from remedies import remedies
 from gtts import gTTS
 from deep_translator import GoogleTranslator
 
-# App title
+# =====================
+# 🌿 App Title & Config
+# =====================
 st.set_page_config(page_title="Crop Disease Detector", layout="centered")
 st.title("🌿 Crop Disease Detector")
 st.write("Upload a sugarcane or maize leaf image to detect disease and get treatment advice.")
 
 # =====================
-# ✅ Download + Load Model
+# 📥 Download + Load Model
 # =====================
 model_path = "crop_disease_model.h5"
 file_id = "1erkVOB1_fsbO2H8SOguACLuKpPO3ehhb"
@@ -40,14 +42,14 @@ except Exception as e:
     st.stop()
 
 # =====================
-# ✅ Load class indices
+# 📚 Load class indices
 # =====================
 with open("class_indices.json", "r") as f:
     class_indices = json.load(f)
 class_labels = {v: k for k, v in class_indices.items()}
 
 # =====================
-# ✅ Predict function
+# 🔍 Prediction Function
 # =====================
 def predict(img):
     img = img.convert("RGB")
@@ -60,7 +62,7 @@ def predict(img):
     return predicted_class, confidence
 
 # =====================
-# 📷 Upload image
+# 📷 Upload Leaf Image
 # =====================
 uploaded_file = st.file_uploader("📷 Upload Leaf Image", type=["jpg", "png", "jpeg"])
 
@@ -77,7 +79,7 @@ if uploaded_file is not None:
         st.warning(f"Recommended Remedy: {remedy}")
 
         # =====================
-        # 🌐 Translate remedy
+        # 🌐 Translate Remedy
         # =====================
         st.subheader("🌐 Translate Remedy")
         lang_map = {
@@ -100,7 +102,7 @@ if uploaded_file is not None:
                 st.error(f"Translation failed: {e}")
 
         # =====================
-        # 🔊 Voice output
+        # 🔊 Voice Output
         # =====================
         st.subheader("🔊 Listen Remedy")
         if st.button("Speak Remedy"):
@@ -113,7 +115,7 @@ if uploaded_file is not None:
                 st.error(f"Text-to-Speech failed: {e}")
 
         # =====================
-        # 📝 Feedback Section
+        # 📝 Feedback Section (FINAL WORKING)
         # =====================
         st.subheader("📝 Feedback")
         feedback = st.radio("Was the prediction correct?", ("Yes", "No"))
@@ -133,14 +135,19 @@ if uploaded_file is not None:
 
             try:
                 if os.path.exists("feedback_log.csv"):
-                    existing = pd.read_csv("feedback_log.csv")
-                    df.to_csv("feedback_log.csv", mode='a', header=False, index=False)
+                    existing_cols = pd.read_csv("feedback_log.csv", nrows=1).columns.tolist()
+                    if existing_cols != columns:
+                        os.remove("feedback_log.csv")  # delete corrupted file
+                        df.to_csv("feedback_log.csv", index=False)
+                    else:
+                        df.to_csv("feedback_log.csv", mode='a', header=False, index=False)
                 else:
                     df.to_csv("feedback_log.csv", index=False)
-                st.success("Thank you for your feedback!")
-            except:
-                df.to_csv("feedback_log.csv", index=False)
-                st.success("Thank you for your feedback (file recreated)!")
+
+                st.success("✅ Your feedback has been recorded!")
+
+            except Exception as e:
+                st.error(f"❌ Feedback save failed: {e}")
 
     except Exception as e:
         st.error(f"❌ Prediction failed: {e}")
